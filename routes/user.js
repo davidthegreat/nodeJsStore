@@ -6,9 +6,18 @@ var passport = require('passport');
 var csrfProtection = csrf();
 router.use(csrfProtection);
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
+
+router.get('/profile', isLoggedIn, function(req, res, next) {
+  res.render('user/profile');
+});
+
+router.get('/logout', isLoggedIn, function(req, res, next){
+	req.logout();
+	res.redirect('/')
+});
+
+router.get('/', notLoggedIn, function(req, res, next) {
+  next();
 });
 
 router.get('/signup', function(req, res, next){
@@ -22,10 +31,6 @@ router.post('/signup', passport.authenticate('local.signup', {
 	failureFlash: true
 }));
 
-router.get('/profile', function(req, res, next) {
-	//res.send('respond with a resource');
-  res.render('user/profile');
-});
 
 router.get('/signin', function(req, res, next){
 	var messages = req.flash('error');
@@ -38,9 +43,21 @@ router.post('/signin',passport.authenticate('local.signin',{
 	failureFlash: true
 }));
 
-//The 404 Route (ALWAYS Keep this as the last route)
-router.get('*', function(req, res){
-  res.send('what???', 404);
-});
+
+
 
 module.exports = router;
+
+function isLoggedIn(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    res.redirect('/');
+}
+
+function notLoggedIn(req, res, next) {
+    if (!req.isAuthenticated()) {
+        return next();
+    }
+    res.redirect('/');
+}
