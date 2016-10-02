@@ -42,7 +42,7 @@ router.get('/shopping-cart', function(req,res, next){
 	res.render('shop/shopping-cart', {products: cart.generateArray(), totalPrice: cart.totalPrice})
 });
 
-router.get('/checkout', function(req, res, next){
+router.get('/checkout', isLoggedIn, function(req, res, next){
 	if (!req.session.cart){
 		return res.redirect('/chopping-cart');
 	}
@@ -81,6 +81,7 @@ router.post('/checkout', function(req, res, next){
 
      order.save(function(err, result){
      if(err){
+      req.flash('error', err.message);
       return res.redirect('/checkout');
      }
       req.flash('success', 'Successfully bought product');
@@ -91,3 +92,11 @@ router.post('/checkout', function(req, res, next){
 });
 
 module.exports = router;
+
+function isLoggedIn(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    req.session.oldUrl = req.url
+    res.redirect('/user/signin');
+}
